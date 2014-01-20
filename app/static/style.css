@@ -1,0 +1,40 @@
+body {
+	max-width: 1000px;
+}
+form {
+    padding-top: 20px;
+}
+SPAN.book, .author{
+  	cursor:pointer;
+        text-decoration:none;
+        border:1px solid #555555;
+        border-bottom:0;
+	border-radius:7px 7px 0 0;
+	-webkit-border-radius:7px 7px 0 0;
+	-moz-border-radius:7px 7px 0 0;
+	padding: 4px;
+	line-height:18px;
+	display:inline-block;
+	text-align:justify;
+	text-indent:0;
+}
+SPAN.active{
+	background-color:#EEEEEE;
+	font-weight:bold;
+}
+/* блоки информации */
+DIV.book{
+        border:1px solid #555555;
+	width:99%;
+	color:#000;
+	font: Verdana,Geneva,Arial,Helvetica,sans-serif;
+	background-color:#EEEEEE;padding:5px;
+	display:none;
+	line-height:20px;
+}
+DIV.book P{
+	padding:10px 20px;
+}
+DIV.active{
+	display:block
+}

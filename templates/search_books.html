@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="" method="post" name="search">
+        {{ form.csrf_token }}
+    <p>
+        {{ form.book.label }} <br>
+        {{form.book(size=64)}}<br>
+    </p>
+    <p>
+        {{ form.author.label }} <br>
+        {{form.author(size=64)}}<br>
+    </p>
+    <p><input type="submit" value="Search"></p>
+</form>
+
+    {% if results %}
+    <h2>Found books:</h2>
+    <ul>
+    {% for result in results  %}
+        <li>{{ result.title }} </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %}

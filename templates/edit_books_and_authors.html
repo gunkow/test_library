@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='style.css') }}"/>
+    <script src="{{ url_for('.static', filename='jquery-2.0.3.js') }}"></script>
+    <title>Edit Books</title>
+</head>
+<body>
+    <h1>Books:</h1>
+    {% for book in books  %}
+        <span class="book{% if loop.first %} active{% endif %}" id='book_{{ book.id }}'>{{ book.title }}</span>
+    {% endfor %}
+    <span class="book new" style='float:right' id='new_book'>Create new book</span>
+    <br>
+    <form name='edit_book' class="edit_book" id='edit_book' action="{{ url_for('update_books') }}" method="post">
+        {{ form.title.label }} <br>
+        {{form.title(size=64)}}<br>
+        <h3>Authors:</h3>
+        {% for author in authors  %}
+            <input type="checkbox" name="{{ author.name }}" id="author_{{ author.id }}">{{ author.name }}<br>
+        {% endfor %}
+        <input type="submit" value="submit">
+        <button id="delete_book" type="button">Delete book</button>
+    </form>
+    
+    <hr><br>
+    <h1>Authors:</h1>
+    <form name = 'add_author' method="post" action="{{ url_for('update_authors') }}">
+        {% for author in authors  %}
+                <span class="author{% if loop.first %} active{% endif %}" id='authors_{{ author.id }}'>{{author.name}}</span>
+        {% endfor %}
+        <span class="author new" style='float:right' id='new_author'>Create new author</span><br>
+        {{ author_form.author_name .label }} <br>
+        {{author_form.author_name (size=64)}}<br>
+        <input type="hidden" id = 'active_author_id' name = "active_author_id">
+        <input type="submit" value="submit">
+        <button id="delete_author" type="button">Delete author</button>
+    </form>
+
+<script>
+    {% if books %} 
+        var active_book = 'book_{{ books[0].id }}';
+    {% else %}
+        var active_book = null;
+    {% endif %}
+
+    {% if authors %} 
+        var active_author = 'authors_{{ authors[0].id }}';
+    {% else %}
+        var active_author = null;
+    {% endif %}
+
+    function make_active(id)
+    {
+        active_book = id;
+        $( ".active:first" ).removeClass( "active" );
+        $( "#"+id ).addClass( "active" );
+        var book_id = id
+        if (id != 'new_book'){
+            var pattern = /\d.*/;
+            book_id = (id.match(pattern)).toString();
+            $.get('{{ url_for('.authors_of_book') }}',
+                {'id':book_id},
+                function(responseText, textStatus, XMLHttpRequest){
+                    fill_fields(responseText);
+                });
+        }
+        else
+            fill_fields({book_title:'',author_ids:[]});
+    }
+    function make_active_author(id)
+    {
+        active_author = id;
+        var author_id = id;
+        if (id != 'new_author'){
+            var pattern = /\d.*/;
+            author_id = (id.match(pattern)).toString();
+        }
+        $('#active_author_id').val(author_id);
+        $( ".active:last" ).removeClass( "active" );
+        $( "#"+active_author ).addClass( "active" );
+        author_name = $('#'+id).text();
+        $('#author_name').val(author_name);
+        if(active_author == 'new_author')
+            $('#author_name').val('');
+
+    }
+    $(document).ready(function(){
+        $('#delete_book').click(function(){
+            var pattern = /\d.*/;
+            var book_id = (active_book.match(pattern)).toString();
+            $.post("{{ url_for('delete_instance') }}",
+                {type:'book', id:book_id});
+            setTimeout(reload, 200);
+        });
+        $('#delete_author').click(function(){
+            var pattern = /\d.*/;
+            var author_id = (active_book.match(pattern)).toString();
+            $.post("{{ url_for('delete_instance') }}",
+                {type:'author', id:author_id});
+            setTimeout(reload, 200);
+        });
+        $('.book').click(function(){
+            var id = this.id
+            make_active(id)
+            if (id == 'new_book')
+                $('#delete_book').hide();
+            else
+                $('#delete_book').show();
+        });
+        $('.author').click(function(){
+            var id = this.id
+            make_active_author(id);
+            if (id == 'new_author')
+                $('#delete_author').hide();
+            else
+                $('#delete_author').show();
+        });
+        $( "#edit_book" ).submit(function( event ) {
+                event.preventDefault();
+                title = $('#title').val();
+                var authors = new Array();
+                $( "input:checked" ).each( function(index){
+                    var pattern = /\d.*/;
+                    var result = (this.id.match(pattern)).toString();
+                    authors.push(result)
+                });
+                authors = JSON.stringify(authors);
+                var pattern = /\d.*/;
+                var book_id = active_book
+                if (active_book != 'new_book')
+                    book_id = (active_book.match(pattern)).toString();
+
+                $.post("{{ url_for('update_books') }}",
+                    {title:title, authors:authors, id:book_id},
+                    function(responseText, textStatus, XMLHttpRequest){
+                        alert(JSON.stringify(responseText));
+                    });
+                if (active_book == 'new_book'){
+                    setTimeout(reload, 200);
+                }
+            });
+        /*$( "#author_name" ).submit(function( event ) {
+
+        });*/
+        make_active(active_book)
+        make_active_author(active_author)
+    });
+    function reload(){location.reload();};
+    function fill_fields(json){
+        fill_title(json.book_title)
+        fill_authors(json.author_ids)
+    };
+    function fill_title(book_title){
+        $('#title').val(book_title)
+    }
+    function fill_authors(author_ids){
+        $(":checkbox").prop('checked', false);
+        author_ids.forEach(function(el) {
+            $('#author_'+el).prop('checked', true);
+        });
+    }
+
+</script>
+</body>
+</html>
